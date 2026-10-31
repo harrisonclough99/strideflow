@@ -6,6 +6,7 @@ import androidx.navigation3.runtime.rememberNavBackStack
 import androidx.navigation3.ui.NavDisplay
 import com.strideflow.app.ui.dashboard.DashboardScreen
 import com.strideflow.app.ui.history.HistoryScreen
+import com.strideflow.app.ui.performance.PerformanceScreen
 import com.strideflow.app.ui.plan.PlanCalendarScreen
 import com.strideflow.app.ui.postrun.PostRunScreen
 import com.strideflow.app.ui.run.ActiveRunScreen
@@ -25,6 +26,7 @@ fun MainNavigation() {
                     onStartRun = { workoutId -> backStack.add(ActiveRunNavKey(workoutId)) },
                     onOpenPlanSetup = { backStack.add(PlanSetupNavKey) },
                     onOpenPlanCalendar = { backStack.add(PlanCalendarNavKey) },
+                    onOpenPerformance = { backStack.add(PerformanceNavKey) },
                     onOpenHistory = { backStack.add(HistoryNavKey) },
                     onOpenSettings = { backStack.add(SettingsNavKey) }
                 )
@@ -67,6 +69,19 @@ fun MainNavigation() {
                 HistoryScreen(
                     onSelectRun = { runId -> backStack.add(PostRunNavKey(runId)) },
                     onBack = { backStack.removeLastOrNull() }
+                )
+            }
+            entry<PerformanceNavKey> {
+                PerformanceScreen(
+                    onBack = { backStack.removeLastOrNull() },
+                    onNavigateToPlan = {
+                        backStack.removeLastOrNull()
+                        backStack.add(PlanCalendarNavKey)
+                    },
+                    onNavigateToHistory = {
+                        backStack.removeLastOrNull()
+                        backStack.add(HistoryNavKey)
+                    }
                 )
             }
             entry<SettingsNavKey> {

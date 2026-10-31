@@ -22,4 +22,7 @@ data object PlanCalendarNavKey : NavKey
 data object HistoryNavKey : NavKey
 
 @Serializable
+data object PerformanceNavKey : NavKey
+
+@Serializable
 data object SettingsNavKey : NavKey

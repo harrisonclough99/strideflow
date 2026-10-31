@@ -204,4 +204,16 @@ class StrideFlowTests {
             assertTrue("Expected $name to match smartwatch keywords", keywords.any { lower.contains(it) })
         }
     }
+
+    @Test
+    fun testRaceTimePredictionFromVdot() {
+        val time5k = VdotCalculator.predictRaceTimeSeconds(45.0, 5000.0)
+        assertTrue("5K time for VDOT 45 should be ~21-23 minutes (got $time5k s)", time5k in 1200L..1400L)
+
+        val time10k = VdotCalculator.predictRaceTimeSeconds(45.0, 10000.0)
+        assertTrue("10K time should be longer than 5K time", time10k > time5k)
+
+        val timeMarathon = VdotCalculator.predictRaceTimeSeconds(45.0, 42195.0)
+        assertTrue("Marathon time for VDOT 45 should be ~3.3-3.6 hours", timeMarathon in 11500L..13500L)
+    }
 }

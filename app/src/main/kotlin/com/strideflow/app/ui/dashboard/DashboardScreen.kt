@@ -31,6 +31,7 @@ fun DashboardScreen(
     onStartRun: (String?) -> Unit,
     onOpenPlanSetup: () -> Unit,
     onOpenPlanCalendar: () -> Unit,
+    onOpenPerformance: () -> Unit,
     onOpenHistory: () -> Unit,
     onOpenSettings: () -> Unit
 ) {
@@ -75,6 +76,9 @@ fun DashboardScreen(
                     }
                 },
                 actions = {
+                    IconButton(onClick = onOpenPerformance) {
+                        Icon(Icons.Default.ShowChart, contentDescription = "Performance & Metrics", tint = NeonGreen)
+                    }
                     IconButton(onClick = onOpenPlanCalendar) {
                         Icon(Icons.Default.CalendarMonth, contentDescription = "Plan Schedule", tint = BrightCyan)
                     }
@@ -87,6 +91,65 @@ fun DashboardScreen(
                 },
                 colors = TopAppBarDefaults.topAppBarColors(containerColor = MaterialTheme.colorScheme.background)
             )
+        },
+        bottomBar = {
+            NavigationBar(
+                containerColor = DarkSurfaceElevated,
+                contentColor = TextPrimary
+            ) {
+                NavigationBarItem(
+                    selected = true,
+                    onClick = { /* Already on Coach/Dashboard */ },
+                    icon = { Icon(Icons.Default.DirectionsRun, contentDescription = "Coach") },
+                    label = { Text("Coach", fontSize = 11.sp, fontWeight = FontWeight.Bold) },
+                    colors = NavigationBarItemDefaults.colors(
+                        selectedIconColor = Color.Black,
+                        selectedTextColor = NeonGreen,
+                        indicatorColor = NeonGreen,
+                        unselectedIconColor = TextSecondary,
+                        unselectedTextColor = TextSecondary
+                    )
+                )
+                NavigationBarItem(
+                    selected = false,
+                    onClick = onOpenPlanCalendar,
+                    icon = { Icon(Icons.Default.CalendarMonth, contentDescription = "Plan") },
+                    label = { Text("Plan", fontSize = 11.sp) },
+                    colors = NavigationBarItemDefaults.colors(
+                        selectedIconColor = Color.Black,
+                        selectedTextColor = BrightCyan,
+                        indicatorColor = BrightCyan,
+                        unselectedIconColor = TextSecondary,
+                        unselectedTextColor = TextSecondary
+                    )
+                )
+                NavigationBarItem(
+                    selected = false,
+                    onClick = onOpenPerformance,
+                    icon = { Icon(Icons.Default.ShowChart, contentDescription = "Performance") },
+                    label = { Text("Performance", fontSize = 11.sp, fontWeight = FontWeight.Bold) },
+                    colors = NavigationBarItemDefaults.colors(
+                        selectedIconColor = Color.Black,
+                        selectedTextColor = NeonGreen,
+                        indicatorColor = NeonGreen,
+                        unselectedIconColor = TextSecondary,
+                        unselectedTextColor = TextSecondary
+                    )
+                )
+                NavigationBarItem(
+                    selected = false,
+                    onClick = onOpenHistory,
+                    icon = { Icon(Icons.Default.History, contentDescription = "History") },
+                    label = { Text("History", fontSize = 11.sp) },
+                    colors = NavigationBarItemDefaults.colors(
+                        selectedIconColor = Color.Black,
+                        selectedTextColor = TextPrimary,
+                        indicatorColor = DarkSurface,
+                        unselectedIconColor = TextSecondary,
+                        unselectedTextColor = TextSecondary
+                    )
+                )
+            }
         },
         containerColor = MaterialTheme.colorScheme.background
     ) { paddingValues ->
@@ -233,6 +296,58 @@ fun DashboardScreen(
                                 lineHeight = 18.sp
                             )
                         }
+                    }
+                }
+            }
+
+            // Performance & Trends Card
+            item {
+                Card(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clickable { onOpenPerformance() },
+                    shape = RoundedCornerShape(14.dp),
+                    colors = CardDefaults.cardColors(containerColor = DarkSurfaceElevated),
+                    border = androidx.compose.foundation.BorderStroke(1.dp, DarkOutline)
+                ) {
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(14.dp),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Box(
+                                modifier = Modifier
+                                    .size(38.dp)
+                                    .clip(CircleShape)
+                                    .background(NeonGreen.copy(alpha = 0.15f)),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Icon(
+                                    Icons.Default.ShowChart,
+                                    contentDescription = null,
+                                    tint = NeonGreen,
+                                    modifier = Modifier.size(20.dp)
+                                )
+                            }
+                            Spacer(modifier = Modifier.width(12.dp))
+                            Column {
+                                Text(
+                                    text = "PERFORMANCE & METRICS",
+                                    fontWeight = FontWeight.Bold,
+                                    fontSize = 13.sp,
+                                    color = TextPrimary
+                                )
+                                Text(
+                                    text = "VDOT, pace progression, weekly mileage & HR",
+                                    fontSize = 11.sp,
+                                    color = TextSecondary
+                                )
+                            }
+                        }
+                        Text("View Trends ➔", fontWeight = FontWeight.Bold, color = NeonGreen, fontSize = 12.sp)
                     }
                 }
             }

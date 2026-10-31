@@ -62,6 +62,24 @@ object VdotCalculator {
     }
 
     /**
+     * Predicts race completion time in seconds for a given VDOT and distance based on Daniels %VO2max models.
+     */
+    fun predictRaceTimeSeconds(vdot: Double, distanceMeters: Double): Long {
+        val safeVdot = vdot.coerceIn(20.0, 85.0)
+        val fraction = when {
+            distanceMeters <= 5000.0 -> 0.95
+            distanceMeters <= 10000.0 -> 0.90
+            distanceMeters <= 21097.5 -> 0.84
+            else -> 0.79
+        }
+        val targetVo2 = safeVdot * fraction
+        val velocityMpm = velocityFromVo2(targetVo2)
+        if (velocityMpm <= 0.0) return 0L
+        val timeMinutes = distanceMeters / velocityMpm
+        return (timeMinutes * 60.0).roundToInt().toLong()
+    }
+
+    /**
      * Computes all five canonical Daniels training paces for a given VDOT.
      */
     fun getPacesForVdot(vdot: Double): TrainingPaces {
