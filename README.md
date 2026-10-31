@@ -8,10 +8,10 @@ StrideFlow is a native Android running companion that performs all computationsâ
 
 ## ðŸ“± Download & Install (Google Pixel 10 Pro / Android)
 
-[![Download APK](https://img.shields.io/badge/Download_APK-v1.0.0_(18.7_MB)-00E676?style=for-the-badge&logo=android&logoColor=black)](https://github.com/harrisonclough99/strideflow/releases/download/v1.0.0/StrideFlow-v1.0.0.apk)
+[![Download APK](https://img.shields.io/badge/Download_APK-v1.1.0_(18.7_MB)-00E676?style=for-the-badge&logo=android&logoColor=black)](https://github.com/harrisonclough99/strideflow/releases/download/v1.1.0/StrideFlow-v1.1.0.apk)
 
-- **Direct Download Link**: **[StrideFlow-v1.0.0.apk](https://github.com/harrisonclough99/strideflow/releases/download/v1.0.0/StrideFlow-v1.0.0.apk)** (18.7 MB)
-- **GitHub Release Page**: [github.com/harrisonclough99/strideflow/releases/tag/v1.0.0](https://github.com/harrisonclough99/strideflow/releases/tag/v1.0.0)
+- **Direct Download Link**: **[StrideFlow-v1.1.0.apk](https://github.com/harrisonclough99/strideflow/releases/download/v1.1.0/StrideFlow-v1.1.0.apk)** (18.7 MB)
+- **GitHub Release Page**: [github.com/harrisonclough99/strideflow/releases/tag/v1.1.0](https://github.com/harrisonclough99/strideflow/releases/tag/v1.1.0)
 
 Tap the download link above directly on your phone to download and install.
 
