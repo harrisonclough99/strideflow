@@ -19,6 +19,7 @@ import androidx.core.app.NotificationCompat
 import com.strideflow.app.MainActivity
 import com.strideflow.app.data.LocalStorageManager
 import com.strideflow.app.engine.AdaptiveCoach
+import com.strideflow.app.engine.PaceSmoother
 import com.strideflow.app.engine.VdotCalculator
 import com.strideflow.app.model.*
 import kotlinx.coroutines.*
@@ -78,6 +79,7 @@ class RunTrackingService : Service(), LocationListener, SensorEventListener, Tex
 
     private var activeWorkout: Workout? = null
     private var activePlan: TrainingPlan? = null
+    private val paceSmoother = PaceSmoother()
 
     inner class LocalBinder : Binder() {
         fun getService(): RunTrackingService = this@RunTrackingService
@@ -117,6 +119,7 @@ class RunTrackingService : Service(), LocationListener, SensorEventListener, Tex
         audioVoiceCues = profile.audioCuesEnabled
         isAutoPauseEnabled = profile.isAutoPauseEnabled
         stationarySeconds = 0
+        paceSmoother.reset()
 
         // Directly connect to the paired smartwatch data stream without scanning
         bleManager.autoConnectPairedSmartwatch(profile.pairedBleDeviceAddress)
@@ -152,6 +155,7 @@ class RunTrackingService : Service(), LocationListener, SensorEventListener, Tex
         if (!_liveState.value.isRunning || _liveState.value.isPaused) return
         _liveState.value = _liveState.value.copy(isPaused = true)
         timerJob?.cancel()
+        paceSmoother.reset()
         speak("Run paused.")
         updateNotification()
     }
@@ -160,6 +164,7 @@ class RunTrackingService : Service(), LocationListener, SensorEventListener, Tex
         if (!_liveState.value.isRunning || !_liveState.value.isPaused) return
         _liveState.value = _liveState.value.copy(isPaused = false, isAutoPaused = false)
         stationarySeconds = 0
+        paceSmoother.reset()
         startTimer()
         speak("Resuming run.")
         updateNotification()
@@ -286,9 +291,12 @@ class RunTrackingService : Service(), LocationListener, SensorEventListener, Tex
                     (newDuration.toDouble() / (current.distanceMeters / 1000.0))
                 } else 0.0
 
+                val smoothedPace = paceSmoother.checkInactivity(System.currentTimeMillis())
+
                 _liveState.value = current.copy(
                     durationSeconds = newDuration,
-                    averagePaceSecPerKm = avgPace
+                    averagePaceSecPerKm = avgPace,
+                    currentPaceSecPerKm = smoothedPace
                 )
                 if (newDuration % 5 == 0L) {
                     updateNotification()
@@ -299,7 +307,7 @@ class RunTrackingService : Service(), LocationListener, SensorEventListener, Tex
 
     override fun onLocationChanged(location: Location) {
         if (!_liveState.value.isRunning || _liveState.value.isPaused) return
-        if (location.accuracy > 25.0f) return
+        if (location.accuracy > 20.0f) return
 
         val last = lastLocation
         var addedDist = 0.0
@@ -318,6 +326,7 @@ class RunTrackingService : Service(), LocationListener, SensorEventListener, Tex
         // Check auto-resume
         if (current.isAutoPaused && instantSpeed >= 1.0) {
             stationarySeconds = 0
+            paceSmoother.reset()
             _liveState.value = current.copy(isAutoPaused = false)
             speak("Resuming run.")
         }
@@ -325,7 +334,12 @@ class RunTrackingService : Service(), LocationListener, SensorEventListener, Tex
         if (current.isAutoPaused) return
 
         val newDist = current.distanceMeters + addedDist
-        val currentPace = if (instantSpeed > 0.5) (1000.0 / instantSpeed) else 0.0
+        val smoothedPace = paceSmoother.update(
+            timeMillis = System.currentTimeMillis(),
+            cumulativeDistance = newDist,
+            rawSpeedMps = instantSpeed,
+            accuracyMeters = location.accuracy
+        )
 
         val newPoint = GpsPoint(
             latitude = location.latitude,
@@ -364,7 +378,7 @@ class RunTrackingService : Service(), LocationListener, SensorEventListener, Tex
 
         _liveState.value = current.copy(
             distanceMeters = newDist,
-            currentPaceSecPerKm = currentPace,
+            currentPaceSecPerKm = smoothedPace,
             points = current.points + newPoint,
             splits = updatedSplits
         )

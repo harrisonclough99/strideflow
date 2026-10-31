@@ -105,7 +105,7 @@ object VdotCalculator {
      * Format pace (seconds per km or mile) into string format "M:SS"
      */
     fun formatPace(paceSec: Double): String {
-        if (paceSec.isNaN() || paceSec.isInfinite() || paceSec <= 0) return "--:--"
+        if (paceSec.isNaN() || paceSec.isInfinite() || paceSec <= 0 || paceSec > 1200.0) return "--:--"
         val totalSec = paceSec.roundToInt()
         val minutes = totalSec / 60
         val seconds = totalSec % 60
