@@ -1,5 +1,9 @@
 # StrideFlow 🏃‍♂️⚡
 
+<p align="center">
+  <img src="art/strideflow_thumbnail.png" alt="StrideFlow Hero Thumbnail" width="100%" style="border-radius: 12px;" />
+</p>
+
 > **100% On-Device Adaptive Running Coach & Workout Tracker for Android (Optimized for Google Pixel 10 Pro)**
 
 StrideFlow is a native Android running companion that performs all computations—physiological VDOT scoring, dynamic plan adjustments, GPS route tracking, and workout-adaptive nutrition advice—**entirely on your device**. It requires no cloud connection, no Wi-Fi, and no account signup, ensuring total privacy and instantaneous performance.

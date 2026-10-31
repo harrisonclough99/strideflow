@@ -19,6 +19,8 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.res.painterResource
+import com.strideflow.app.R
 import com.strideflow.app.data.LocalStorageManager
 import com.strideflow.app.engine.NutritionEngine
 import com.strideflow.app.engine.VdotCalculator
@@ -63,11 +65,20 @@ fun DashboardScreen(
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         Box(
                             modifier = Modifier
-                                .size(10.dp)
+                                .size(30.dp)
                                 .clip(CircleShape)
-                                .background(NeonGreen)
-                        )
-                        Spacer(modifier = Modifier.width(8.dp))
+                                .background(DarkSurfaceElevated)
+                                .border(1.dp, NeonGreen.copy(alpha = 0.5f), CircleShape),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Icon(
+                                painter = painterResource(id = R.drawable.ic_launcher_foreground),
+                                contentDescription = "StrideFlow Thumbnail",
+                                tint = Color.Unspecified,
+                                modifier = Modifier.size(24.dp)
+                            )
+                        }
+                        Spacer(modifier = Modifier.width(10.dp))
                         Text(
                             text = "STRIDEFLOW",
                             fontWeight = FontWeight.Black,
