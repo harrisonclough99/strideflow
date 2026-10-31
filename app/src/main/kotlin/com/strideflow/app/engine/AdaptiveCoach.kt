@@ -169,6 +169,44 @@ object AdaptiveCoach {
     }
 
     /**
+     * Updates an active plan's goal target time and recalculates target paces for all uncompleted workouts.
+     */
+    fun updatePlanTargetTime(plan: TrainingPlan, newTargetTimeSec: Long): TrainingPlan {
+        val distanceMeters = plan.goal.goalType.defaultDistanceMeters
+        val newVdot = if (distanceMeters > 0) {
+            VdotCalculator.calculateVdot(distanceMeters, newTargetTimeSec)
+        } else plan.currentVdot
+
+        val updatedPaces = VdotCalculator.getPacesForVdot(newVdot)
+        val newRacePace = if (distanceMeters > 0) newTargetTimeSec.toDouble() / (distanceMeters / 1000.0) else 300.0
+
+        val updatedWorkouts = plan.workouts.map { workout ->
+            if (workout.isCompleted) {
+                workout
+            } else {
+                val newPace = when (workout.type) {
+                    WorkoutType.EASY -> updatedPaces.easyPaceSecPerKm
+                    WorkoutType.FAT_BURN_ZONE2 -> updatedPaces.easyPaceSecPerKm + 5.0
+                    WorkoutType.LONG_RUN -> updatedPaces.easyPaceSecPerKm + 10.0
+                    WorkoutType.THRESHOLD_TEMPO -> updatedPaces.thresholdPaceSecPerKm
+                    WorkoutType.INTERVAL_VO2MAX -> updatedPaces.intervalPaceSecPerKm
+                    WorkoutType.SPEED_REPETITION -> updatedPaces.repetitionPaceSecPerKm
+                    WorkoutType.BENCHMARK_TEST -> newRacePace
+                    WorkoutType.REST -> 0.0
+                }
+                workout.copy(targetPaceSecPerKm = newPace)
+            }
+        }
+
+        val updatedGoal = plan.goal.copy(targetTimeSeconds = newTargetTimeSec)
+        return plan.copy(
+            goal = updatedGoal,
+            currentVdot = newVdot,
+            workouts = updatedWorkouts
+        )
+    }
+
+    /**
      * Automatically adjusts the training plan when workouts are missed.
      * Implements sports-science principles:
      * 1. Never cram missed mileage into subsequent days.

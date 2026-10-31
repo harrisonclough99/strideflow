@@ -216,4 +216,24 @@ class StrideFlowTests {
         val timeMarathon = VdotCalculator.predictRaceTimeSeconds(45.0, 42195.0)
         assertTrue("Marathon time for VDOT 45 should be ~3.3-3.6 hours", timeMarathon in 11500L..13500L)
     }
+
+    @Test
+    fun testUpdatePlanTargetTimeUpdatesAllWorkoutPaces() {
+        val goal = RunningGoal(
+            goalType = GoalType.FIVE_K,
+            targetTimeSeconds = 1500, // 25:00
+            targetDateEpochMillis = System.currentTimeMillis() + (8L * 7 * 24 * 3600 * 1000),
+            daysPerWeek = 4
+        )
+        val initialPlan = PlanGenerator.generatePlan(goal, 40.0, 20.0, 8)
+        val initialEasyPace = initialPlan.workouts.first { it.type == WorkoutType.EASY }.targetPaceSecPerKm
+
+        // Faster target time: 22:30 (1350s)
+        val updatedPlan = AdaptiveCoach.updatePlanTargetTime(initialPlan, 1350)
+        assertEquals(1350L, updatedPlan.goal.targetTimeSeconds)
+        assertTrue("New VDOT should be higher than old VDOT", updatedPlan.currentVdot > initialPlan.currentVdot)
+
+        val updatedEasyPace = updatedPlan.workouts.first { it.type == WorkoutType.EASY }.targetPaceSecPerKm
+        assertTrue("Updated easy pace should be faster (smaller sec/km)", updatedEasyPace < initialEasyPace)
+    }
 }

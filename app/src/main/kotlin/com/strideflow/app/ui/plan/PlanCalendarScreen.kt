@@ -9,6 +9,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -17,14 +18,18 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.strideflow.app.data.LocalStorageManager
+import com.strideflow.app.engine.AdaptiveCoach
 import com.strideflow.app.engine.VdotCalculator
 import com.strideflow.app.model.Workout
 import com.strideflow.app.model.WorkoutType
+import com.strideflow.app.service.NutritionNotificationScheduler
 import com.strideflow.app.ui.theme.*
+import kotlin.math.roundToInt
 
 enum class PlanViewMode {
     CALENDAR,
@@ -45,6 +50,7 @@ fun PlanCalendarScreen(
 
     var workoutToReschedule by remember { mutableStateOf<Workout?>(null) }
     var newDayIndex by remember { mutableIntStateOf(0) }
+    var showEditTargetPaceDialog by remember { mutableStateOf(false) }
 
     val daysOfWeek = listOf("Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun")
 
@@ -54,7 +60,7 @@ fun PlanCalendarScreen(
                 title = { Text(plan?.title ?: "TRAINING PLAN", fontWeight = FontWeight.Black, fontSize = 16.sp) },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
-                        Icon(Icons.Default.ArrowBack, contentDescription = "Back")
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
                     }
                 },
                 actions = {
@@ -115,6 +121,57 @@ fun PlanCalendarScreen(
                     .padding(horizontal = 16.dp),
                 verticalArrangement = Arrangement.spacedBy(16.dp)
             ) {
+                // Active Plan Target & Pace Banner
+                item {
+                    val distanceKm = (plan!!.goal.goalType.defaultDistanceMeters / 1000.0).coerceAtLeast(1.0)
+                    val targetPaceSec = plan!!.goal.targetTimeSeconds.toDouble() / distanceKm
+
+                    Card(
+                        modifier = Modifier.fillMaxWidth(),
+                        shape = RoundedCornerShape(14.dp),
+                        colors = CardDefaults.cardColors(containerColor = DarkSurfaceElevated),
+                        border = androidx.compose.foundation.BorderStroke(1.dp, DarkOutline)
+                    ) {
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(14.dp),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Column(modifier = Modifier.weight(1f)) {
+                                Text(
+                                    text = "TARGET: ${plan!!.goal.goalType.displayName.uppercase()}",
+                                    fontWeight = FontWeight.Black,
+                                    fontSize = 11.sp,
+                                    color = BrightCyan
+                                )
+                                Spacer(modifier = Modifier.height(2.dp))
+                                Text(
+                                    text = "${VdotCalculator.formatPace(targetPaceSec)} /km • ${VdotCalculator.formatDuration(plan!!.goal.targetTimeSeconds)}",
+                                    fontWeight = FontWeight.Black,
+                                    fontFamily = FontFamily.Monospace,
+                                    fontSize = 15.sp,
+                                    color = NeonGreen
+                                )
+                                Text(
+                                    text = "Calibrated VDOT ${String.format("%.1f", plan!!.currentVdot)}",
+                                    fontSize = 11.sp,
+                                    color = TextSecondary
+                                )
+                            }
+
+                            OutlinedButton(
+                                onClick = { showEditTargetPaceDialog = true },
+                                shape = RoundedCornerShape(8.dp),
+                                contentPadding = PaddingValues(horizontal = 10.dp, vertical = 4.dp)
+                            ) {
+                                Text("Edit Pace", fontSize = 12.sp, color = BrightCyan, fontWeight = FontWeight.Bold)
+                            }
+                        }
+                    }
+                }
+
                 // Week Selector Tabs
                 item {
                     Row(
@@ -390,6 +447,155 @@ fun PlanCalendarScreen(
                 },
                 dismissButton = {
                     TextButton(onClick = { workoutToReschedule = null }) {
+                        Text("Cancel", color = TextSecondary)
+                    }
+                },
+                containerColor = DarkSurfaceElevated
+            )
+        }
+
+        // Edit Target Pace Dialog
+        if (showEditTargetPaceDialog && plan != null) {
+            val distKm = (plan!!.goal.goalType.defaultDistanceMeters / 1000.0).coerceAtLeast(1.0)
+            val currentPaceSec = plan!!.goal.targetTimeSeconds.toDouble() / distKm
+            val currentTargetTime = plan!!.goal.targetTimeSeconds
+
+            var editHours by remember { mutableStateOf("${currentTargetTime / 3600}") }
+            var editMins by remember { mutableStateOf("%02d".format((currentTargetTime % 3600) / 60)) }
+            var editSecs by remember { mutableStateOf("%02d".format(currentTargetTime % 60)) }
+
+            var editPaceMin by remember { mutableStateOf("${(currentPaceSec / 60).toInt()}") }
+            var editPaceSec by remember { mutableStateOf("%02d".format((currentPaceSec % 60).roundToInt())) }
+
+            // Realistic baseline calculation
+            val realisticTimeSec = remember(plan) {
+                val targetVdot = (plan!!.startingVdot + 1.8).coerceIn(20.0, 85.0)
+                VdotCalculator.predictRaceTimeSeconds(targetVdot, plan!!.goal.goalType.defaultDistanceMeters)
+            }
+            val realisticPaceSec = realisticTimeSec.toDouble() / distKm
+
+            AlertDialog(
+                onDismissRequest = { showEditTargetPaceDialog = false },
+                title = { Text("Change Plan Target Pace", fontWeight = FontWeight.Bold, color = TextPrimary) },
+                text = {
+                    Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                        Text(
+                            text = "Realistic baseline: ${VdotCalculator.formatPace(realisticPaceSec)} /km (${VdotCalculator.formatDuration(realisticTimeSec)})",
+                            fontSize = 12.sp,
+                            color = NeonGreen,
+                            fontWeight = FontWeight.Bold
+                        )
+                        Text(
+                            text = "Adjust your target pace or finish time. All upcoming workouts in your active plan will update accordingly.",
+                            fontSize = 12.sp,
+                            color = TextSecondary
+                        )
+
+                        // Steppers & Pace Input
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.spacedBy(6.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            FilledTonalIconButton(
+                                onClick = {
+                                    val curSec = ((editPaceMin.toLongOrNull() ?: 4L) * 60) + (editPaceSec.toLongOrNull() ?: 0L)
+                                    val newPace = (curSec - 5).coerceAtLeast(120)
+                                    editPaceMin = "${newPace / 60}"
+                                    editPaceSec = "%02d".format(newPace % 60)
+                                    val totalSec = (newPace * distKm).roundToInt().toLong()
+                                    editHours = "${totalSec / 3600}"
+                                    editMins = "%02d".format((totalSec % 3600) / 60)
+                                    editSecs = "%02d".format(totalSec % 60)
+                                },
+                                shape = RoundedCornerShape(8.dp),
+                                modifier = Modifier.size(36.dp)
+                            ) {
+                                Text("-5s", fontSize = 11.sp, fontWeight = FontWeight.Bold, color = BrightCyan)
+                            }
+
+                            OutlinedTextField(
+                                value = editPaceMin,
+                                onValueChange = {
+                                    editPaceMin = it
+                                    val m = it.toLongOrNull() ?: 4L
+                                    val s = editPaceSec.toLongOrNull() ?: 0L
+                                    val totalSec = (((m * 60) + s) * distKm).roundToInt().toLong()
+                                    editHours = "${totalSec / 3600}"
+                                    editMins = "%02d".format((totalSec % 3600) / 60)
+                                    editSecs = "%02d".format(totalSec % 60)
+                                },
+                                label = { Text("Min") },
+                                modifier = Modifier.weight(1f),
+                                shape = RoundedCornerShape(8.dp)
+                            )
+                            Text(":", fontSize = 18.sp, fontWeight = FontWeight.Bold)
+                            OutlinedTextField(
+                                value = editPaceSec,
+                                onValueChange = {
+                                    editPaceSec = it
+                                    val m = editPaceMin.toLongOrNull() ?: 4L
+                                    val s = it.toLongOrNull() ?: 0L
+                                    val totalSec = (((m * 60) + s) * distKm).roundToInt().toLong()
+                                    editHours = "${totalSec / 3600}"
+                                    editMins = "%02d".format((totalSec % 3600) / 60)
+                                    editSecs = "%02d".format(totalSec % 60)
+                                },
+                                label = { Text("Sec") },
+                                modifier = Modifier.weight(1f),
+                                shape = RoundedCornerShape(8.dp)
+                            )
+
+                            FilledTonalIconButton(
+                                onClick = {
+                                    val curSec = ((editPaceMin.toLongOrNull() ?: 4L) * 60) + (editPaceSec.toLongOrNull() ?: 0L)
+                                    val newPace = curSec + 5
+                                    editPaceMin = "${newPace / 60}"
+                                    editPaceSec = "%02d".format(newPace % 60)
+                                    val totalSec = (newPace * distKm).roundToInt().toLong()
+                                    editHours = "${totalSec / 3600}"
+                                    editMins = "%02d".format((totalSec % 3600) / 60)
+                                    editSecs = "%02d".format(totalSec % 60)
+                                },
+                                shape = RoundedCornerShape(8.dp),
+                                modifier = Modifier.size(36.dp)
+                            ) {
+                                Text("+5s", fontSize = 11.sp, fontWeight = FontWeight.Bold, color = BrightCyan)
+                            }
+                        }
+
+                        Text(
+                            text = "New Finish Time: ${editHours}h ${editMins}m ${editSecs}s",
+                            fontSize = 12.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = BrightCyan
+                        )
+                    }
+                },
+                confirmButton = {
+                    Button(
+                        onClick = {
+                            val h = editHours.toLongOrNull() ?: 0L
+                            val m = editMins.toLongOrNull() ?: 25L
+                            val s = editSecs.toLongOrNull() ?: 0L
+                            val newTotalSecs = (h * 3600) + (m * 60) + s
+
+                            val updatedPlan = AdaptiveCoach.updatePlanTargetTime(plan!!, newTotalSecs)
+                            storage.savePlan(updatedPlan)
+                            val userProf = storage.loadProfile()
+                            val updatedProfile = userProf.copy(vdot = updatedPlan.currentVdot)
+                            storage.saveProfile(updatedProfile)
+                            NutritionNotificationScheduler.syncNotifications(context, updatedPlan, updatedProfile)
+                            plan = updatedPlan
+                            showEditTargetPaceDialog = false
+                        },
+                        colors = ButtonDefaults.buttonColors(containerColor = NeonGreen)
+                    ) {
+                        Text("Apply & Update Paces", color = Color.Black, fontWeight = FontWeight.Bold)
+                    }
+                },
+                dismissButton = {
+                    TextButton(onClick = { showEditTargetPaceDialog = false }) {
                         Text("Cancel", color = TextSecondary)
                     }
                 },

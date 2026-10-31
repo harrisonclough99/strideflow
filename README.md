@@ -34,12 +34,18 @@ Tap the download link above directly on your phone to download and install.
 - **Unified Sensor Bridging**: Listens to standard Bluetooth GATT Heart Rate notifications (`0x180D` / `0x2A37`) and registers Android's `Sensor.TYPE_HEART_RATE` from `SensorManager` to capture heart rate whether delivered via Bluetooth GATT or OS sensor bridging.
 - **Zone 2 Fat Burn Workouts**: Karvonen-based target zone calculation (60%–70% heart rate reserve) with real-time HUD dial and audio cues if you drift out of the fat-burning zone.
 
-### 3. ⏱️ Interactive Target Workout Time Scroll Wheel
-- **Hours & Minutes Scroll Wheels**: High-contrast OLED drum scroll wheels for hours (`00` to `23`) and minutes (`00` to `59`) with tactile magnetic snapping (`rememberSnapFlingBehavior`) and single-minute nudge controls.
-- **Dynamic 12h/24h Readout**: Displays formatted time in both 24-hour and 12-hour AM/PM formats (e.g. `06:15 (6:15 AM)`).
-- **Instant Notification Sync**: Changing the target workout time immediately recalculates all pre-run nutrition and workout reminder alarms.
+### 3. 📊 Performance Analytics & Metrics Over Time
+- **Unified 4-Tab Bottom Navigation**: Seamlessly switch between Coach, Plan Calendar, Performance Analytics, and History.
+- **Time Range Filters**: Filter trends across 7 Days, 30 Days, 12 Weeks, or All Time.
+- **VDOT Progression & Race Prediction**: Track aerobic fitness curves over time and view Jack Daniels predicted finish times for 5K, 10K, Half Marathon, and Marathon.
+- **Pace Curves & Weekly Volume**: Visual pace progression graphs and weekly mileage bar charts comparing completed volume against target baselines.
+- **Cardiovascular Efficiency**: Monitor heart rate response and cadence trends over time.
 
-### 4. 🥗 Distance-Tiered Nutrition & Fueling Protocols
+### 4. 🎯 Realistic Calculated & Customizable Plan Target Paces
+- **Scientifically Calibrated Prefilling**: Automatically calculates a realistic target pace and finish time based on your current ability (VDOT) and scheduled plan duration (~4% progressive gain over 8 weeks).
+- **Full Customizability**: Adjust target pace or finish time at any point with interactive stepper controls and text inputs. All scheduled workouts in the plan automatically update their target paces.
+
+### 5. 🥗 Distance-Tiered Nutrition & Fueling Protocols
 Workout-tailored fueling guidelines for before, during, and after runs:
 - **5K (< 7.5 km / ~20–30 min)**: Ample glycogen stored; light carb snack 30–60m prior, water only during, balanced meal within 60m post-run.
 - **10K (7.5–15 km / ~45–60+ min)**: Easily digestible meal 1–2h prior (porridge, toast with jam); water or small sips of electrolyte drink; 3:1 or 4:1 carb-to-protein recovery meal.
@@ -47,7 +53,7 @@ Workout-tailored fueling guidelines for before, during, and after runs:
 - **Marathon & Ultra (> 25 km / 3+ hours)**: Full carb-loading 2–3 days prior; breakfast 3–4h prior; scheduled fueling every 30–45m (60–75g carbs/hour); immediate recovery drinks transitioning to sodium and complex carb replenishment.
 - **Dietary Preference Filtering**: Omnivore, Vegetarian, Vegan, Gluten-Free, and Low-FODMAP options.
 
-### 5. 🗺️ Offline Route Mapping & GPS Tracking
+### 6. 🗺️ Offline Route Mapping & GPS Tracking
 - **Vector Route Canvas**: High-contrast route map showing full GPS track, start pin, finish pin, and per-kilometer splits without loading external network map tiles.
 - **Accidental Run Deletion**: Permanently delete accidental recordings from history with automatic unmarking of linked scheduled plan workouts.
 - **Auto-Pause & Countdown**: Automatically pauses when stationary for > 10 seconds; configurable 3s/5s/10s countdown buffer before GPS recording starts.
