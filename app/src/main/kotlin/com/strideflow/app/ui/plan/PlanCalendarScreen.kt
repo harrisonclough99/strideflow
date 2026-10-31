@@ -28,6 +28,8 @@ import com.strideflow.app.engine.VdotCalculator
 import com.strideflow.app.model.Workout
 import com.strideflow.app.model.WorkoutType
 import com.strideflow.app.service.NutritionNotificationScheduler
+import com.strideflow.app.ui.common.AppBottomNavigationBar
+import com.strideflow.app.ui.common.MainNavTab
 import com.strideflow.app.ui.theme.*
 import kotlin.math.roundToInt
 
@@ -40,7 +42,10 @@ enum class PlanViewMode {
 @Composable
 fun PlanCalendarScreen(
     onSelectWorkoutToRun: (String) -> Unit,
-    onBack: () -> Unit
+    onBack: () -> Unit,
+    onNavigateToCoach: () -> Unit = onBack,
+    onNavigateToPerformance: () -> Unit = {},
+    onNavigateToHistory: () -> Unit = {}
 ) {
     val context = LocalContext.current
     val storage = remember { LocalStorageManager(context) }
@@ -97,6 +102,15 @@ fun PlanCalendarScreen(
                     Spacer(modifier = Modifier.width(8.dp))
                 },
                 colors = TopAppBarDefaults.topAppBarColors(containerColor = MaterialTheme.colorScheme.background)
+            )
+        },
+        bottomBar = {
+            AppBottomNavigationBar(
+                currentTab = MainNavTab.PLAN,
+                onNavigateToCoach = onNavigateToCoach,
+                onNavigateToPlan = { /* Already on Plan */ },
+                onNavigateToPerformance = onNavigateToPerformance,
+                onNavigateToHistory = onNavigateToHistory
             )
         },
         containerColor = MaterialTheme.colorScheme.background

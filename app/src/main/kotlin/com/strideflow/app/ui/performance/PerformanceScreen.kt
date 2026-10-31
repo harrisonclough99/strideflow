@@ -33,6 +33,8 @@ import com.strideflow.app.engine.VdotCalculator
 import com.strideflow.app.model.RecordedRun
 import com.strideflow.app.model.UnitSystem
 import com.strideflow.app.model.WorkoutType
+import com.strideflow.app.ui.common.AppBottomNavigationBar
+import com.strideflow.app.ui.common.MainNavTab
 import com.strideflow.app.ui.theme.*
 import java.text.SimpleDateFormat
 import java.util.*
@@ -57,8 +59,9 @@ enum class MetricViewMode(val label: String) {
 @Composable
 fun PerformanceScreen(
     onBack: () -> Unit,
-    onNavigateToPlan: (() -> Unit)? = null,
-    onNavigateToHistory: (() -> Unit)? = null
+    onNavigateToCoach: () -> Unit = onBack,
+    onNavigateToPlan: () -> Unit = {},
+    onNavigateToHistory: () -> Unit = {}
 ) {
     val context = LocalContext.current
     val storage = remember { LocalStorageManager(context) }
@@ -124,67 +127,13 @@ fun PerformanceScreen(
             )
         },
         bottomBar = {
-            NavigationBar(
-                containerColor = DarkSurfaceElevated,
-                contentColor = TextPrimary
-            ) {
-                NavigationBarItem(
-                    selected = false,
-                    onClick = onBack,
-                    icon = { Icon(Icons.Default.DirectionsRun, contentDescription = "Coach") },
-                    label = { Text("Coach", fontSize = 11.sp) },
-                    colors = NavigationBarItemDefaults.colors(
-                        selectedIconColor = Color.Black,
-                        selectedTextColor = NeonGreen,
-                        indicatorColor = NeonGreen,
-                        unselectedIconColor = TextSecondary,
-                        unselectedTextColor = TextSecondary
-                    )
-                )
-                if (onNavigateToPlan != null) {
-                    NavigationBarItem(
-                        selected = false,
-                        onClick = onNavigateToPlan,
-                        icon = { Icon(Icons.Default.CalendarMonth, contentDescription = "Plan") },
-                        label = { Text("Plan", fontSize = 11.sp) },
-                        colors = NavigationBarItemDefaults.colors(
-                            selectedIconColor = Color.Black,
-                            selectedTextColor = BrightCyan,
-                            indicatorColor = BrightCyan,
-                            unselectedIconColor = TextSecondary,
-                            unselectedTextColor = TextSecondary
-                        )
-                    )
-                }
-                NavigationBarItem(
-                    selected = true,
-                    onClick = { /* already here */ },
-                    icon = { Icon(Icons.Default.ShowChart, contentDescription = "Performance") },
-                    label = { Text("Performance", fontSize = 11.sp, fontWeight = FontWeight.Bold) },
-                    colors = NavigationBarItemDefaults.colors(
-                        selectedIconColor = Color.Black,
-                        selectedTextColor = NeonGreen,
-                        indicatorColor = NeonGreen,
-                        unselectedIconColor = TextSecondary,
-                        unselectedTextColor = TextSecondary
-                    )
-                )
-                if (onNavigateToHistory != null) {
-                    NavigationBarItem(
-                        selected = false,
-                        onClick = onNavigateToHistory,
-                        icon = { Icon(Icons.Default.History, contentDescription = "History") },
-                        label = { Text("History", fontSize = 11.sp) },
-                        colors = NavigationBarItemDefaults.colors(
-                            selectedIconColor = Color.Black,
-                            selectedTextColor = TextPrimary,
-                            indicatorColor = DarkSurface,
-                            unselectedIconColor = TextSecondary,
-                            unselectedTextColor = TextSecondary
-                        )
-                    )
-                }
-            }
+            AppBottomNavigationBar(
+                currentTab = MainNavTab.PERFORMANCE,
+                onNavigateToCoach = onNavigateToCoach,
+                onNavigateToPlan = onNavigateToPlan,
+                onNavigateToPerformance = { /* already here */ },
+                onNavigateToHistory = onNavigateToHistory
+            )
         },
         containerColor = MaterialTheme.colorScheme.background
     ) { padding ->

@@ -62,18 +62,37 @@ fun MainNavigation() {
                     onSelectWorkoutToRun = { workoutId ->
                         backStack.add(ActiveRunNavKey(workoutId))
                     },
-                    onBack = { backStack.removeLastOrNull() }
+                    onBack = { backStack.removeLastOrNull() },
+                    onNavigateToCoach = { backStack.removeLastOrNull() },
+                    onNavigateToPerformance = {
+                        backStack.removeLastOrNull()
+                        backStack.add(PerformanceNavKey)
+                    },
+                    onNavigateToHistory = {
+                        backStack.removeLastOrNull()
+                        backStack.add(HistoryNavKey)
+                    }
                 )
             }
             entry<HistoryNavKey> {
                 HistoryScreen(
                     onSelectRun = { runId -> backStack.add(PostRunNavKey(runId)) },
-                    onBack = { backStack.removeLastOrNull() }
+                    onBack = { backStack.removeLastOrNull() },
+                    onNavigateToCoach = { backStack.removeLastOrNull() },
+                    onNavigateToPlan = {
+                        backStack.removeLastOrNull()
+                        backStack.add(PlanCalendarNavKey)
+                    },
+                    onNavigateToPerformance = {
+                        backStack.removeLastOrNull()
+                        backStack.add(PerformanceNavKey)
+                    }
                 )
             }
             entry<PerformanceNavKey> {
                 PerformanceScreen(
                     onBack = { backStack.removeLastOrNull() },
+                    onNavigateToCoach = { backStack.removeLastOrNull() },
                     onNavigateToPlan = {
                         backStack.removeLastOrNull()
                         backStack.add(PlanCalendarNavKey)

@@ -23,6 +23,8 @@ import com.strideflow.app.data.LocalStorageManager
 import com.strideflow.app.engine.NutritionEngine
 import com.strideflow.app.engine.VdotCalculator
 import com.strideflow.app.model.*
+import com.strideflow.app.ui.common.AppBottomNavigationBar
+import com.strideflow.app.ui.common.MainNavTab
 import com.strideflow.app.ui.theme.*
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -76,15 +78,6 @@ fun DashboardScreen(
                     }
                 },
                 actions = {
-                    IconButton(onClick = onOpenPerformance) {
-                        Icon(Icons.Default.ShowChart, contentDescription = "Performance & Metrics", tint = NeonGreen)
-                    }
-                    IconButton(onClick = onOpenPlanCalendar) {
-                        Icon(Icons.Default.CalendarMonth, contentDescription = "Plan Schedule", tint = BrightCyan)
-                    }
-                    IconButton(onClick = onOpenHistory) {
-                        Icon(Icons.Default.History, contentDescription = "Run History", tint = TextPrimary)
-                    }
                     IconButton(onClick = onOpenSettings) {
                         Icon(Icons.Default.Settings, contentDescription = "Settings", tint = TextPrimary)
                     }
@@ -93,63 +86,13 @@ fun DashboardScreen(
             )
         },
         bottomBar = {
-            NavigationBar(
-                containerColor = DarkSurfaceElevated,
-                contentColor = TextPrimary
-            ) {
-                NavigationBarItem(
-                    selected = true,
-                    onClick = { /* Already on Coach/Dashboard */ },
-                    icon = { Icon(Icons.Default.DirectionsRun, contentDescription = "Coach") },
-                    label = { Text("Coach", fontSize = 11.sp, fontWeight = FontWeight.Bold) },
-                    colors = NavigationBarItemDefaults.colors(
-                        selectedIconColor = Color.Black,
-                        selectedTextColor = NeonGreen,
-                        indicatorColor = NeonGreen,
-                        unselectedIconColor = TextSecondary,
-                        unselectedTextColor = TextSecondary
-                    )
-                )
-                NavigationBarItem(
-                    selected = false,
-                    onClick = onOpenPlanCalendar,
-                    icon = { Icon(Icons.Default.CalendarMonth, contentDescription = "Plan") },
-                    label = { Text("Plan", fontSize = 11.sp) },
-                    colors = NavigationBarItemDefaults.colors(
-                        selectedIconColor = Color.Black,
-                        selectedTextColor = BrightCyan,
-                        indicatorColor = BrightCyan,
-                        unselectedIconColor = TextSecondary,
-                        unselectedTextColor = TextSecondary
-                    )
-                )
-                NavigationBarItem(
-                    selected = false,
-                    onClick = onOpenPerformance,
-                    icon = { Icon(Icons.Default.ShowChart, contentDescription = "Performance") },
-                    label = { Text("Performance", fontSize = 11.sp, fontWeight = FontWeight.Bold) },
-                    colors = NavigationBarItemDefaults.colors(
-                        selectedIconColor = Color.Black,
-                        selectedTextColor = NeonGreen,
-                        indicatorColor = NeonGreen,
-                        unselectedIconColor = TextSecondary,
-                        unselectedTextColor = TextSecondary
-                    )
-                )
-                NavigationBarItem(
-                    selected = false,
-                    onClick = onOpenHistory,
-                    icon = { Icon(Icons.Default.History, contentDescription = "History") },
-                    label = { Text("History", fontSize = 11.sp) },
-                    colors = NavigationBarItemDefaults.colors(
-                        selectedIconColor = Color.Black,
-                        selectedTextColor = TextPrimary,
-                        indicatorColor = DarkSurface,
-                        unselectedIconColor = TextSecondary,
-                        unselectedTextColor = TextSecondary
-                    )
-                )
-            }
+            AppBottomNavigationBar(
+                currentTab = MainNavTab.COACH,
+                onNavigateToCoach = { /* Already on Coach */ },
+                onNavigateToPlan = onOpenPlanCalendar,
+                onNavigateToPerformance = onOpenPerformance,
+                onNavigateToHistory = onOpenHistory
+            )
         },
         containerColor = MaterialTheme.colorScheme.background
     ) { paddingValues ->

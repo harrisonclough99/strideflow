@@ -8,7 +8,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.Map
@@ -26,6 +26,8 @@ import androidx.compose.ui.unit.sp
 import com.strideflow.app.data.LocalStorageManager
 import com.strideflow.app.engine.VdotCalculator
 import com.strideflow.app.model.RecordedRun
+import com.strideflow.app.ui.common.AppBottomNavigationBar
+import com.strideflow.app.ui.common.MainNavTab
 import com.strideflow.app.ui.map.RouteMapView
 import com.strideflow.app.ui.theme.*
 import java.text.SimpleDateFormat
@@ -35,7 +37,10 @@ import java.util.*
 @Composable
 fun HistoryScreen(
     onSelectRun: (String) -> Unit,
-    onBack: () -> Unit
+    onBack: () -> Unit,
+    onNavigateToCoach: () -> Unit = onBack,
+    onNavigateToPlan: () -> Unit = {},
+    onNavigateToPerformance: () -> Unit = {}
 ) {
     val context = LocalContext.current
     val storage = remember { LocalStorageManager(context) }
@@ -51,10 +56,19 @@ fun HistoryScreen(
                 title = { Text("RUN HISTORY", fontWeight = FontWeight.Black, fontSize = 16.sp) },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
-                        Icon(Icons.Default.ArrowBack, contentDescription = "Back")
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(containerColor = MaterialTheme.colorScheme.background)
+            )
+        },
+        bottomBar = {
+            AppBottomNavigationBar(
+                currentTab = MainNavTab.HISTORY,
+                onNavigateToCoach = onNavigateToCoach,
+                onNavigateToPlan = onNavigateToPlan,
+                onNavigateToPerformance = onNavigateToPerformance,
+                onNavigateToHistory = { /* Already on History */ }
             )
         },
         containerColor = MaterialTheme.colorScheme.background
