@@ -211,6 +211,14 @@ fun HistoryScreen(
                                             fontWeight = FontWeight.Bold,
                                             color = NeonGreen
                                         )
+                                        if (run.adaptationProposal?.isAccepted == true) {
+                                            Text(
+                                                text = "  ·  ✓ VDOT ${run.adaptationProposal.proposedVdot}",
+                                                fontSize = 12.sp,
+                                                fontWeight = FontWeight.Bold,
+                                                color = BrightCyan
+                                            )
+                                        }
                                     }
                                 }
                             }

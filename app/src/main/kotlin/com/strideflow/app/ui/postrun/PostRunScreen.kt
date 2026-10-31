@@ -7,6 +7,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.FitnessCenter
@@ -42,9 +43,41 @@ fun PostRunScreen(
     val runs = remember { storage.loadRuns() }
     val run = remember(runId) { runs.firstOrNull { it.id == runId } }
     var plan by remember { mutableStateOf(storage.loadActivePlan()) }
+    val currentPlan = plan
 
-    var adaptationProposal by remember { mutableStateOf(run?.adaptationProposal) }
-    var adaptationStatusText by remember { mutableStateOf<String?>(null) }
+    val initialProposal = run?.adaptationProposal
+    val wasAlreadyAccepted = initialProposal?.isAccepted == true ||
+        (initialProposal?.isAccepted == null && initialProposal != null && (
+            (initialProposal.proposedVdot > initialProposal.previousVdot && ((currentPlan != null && currentPlan.currentVdot >= initialProposal.proposedVdot) || profile.vdot >= initialProposal.proposedVdot)) ||
+            (initialProposal.proposedVdot < initialProposal.previousVdot && ((currentPlan != null && currentPlan.currentVdot <= initialProposal.proposedVdot) || profile.vdot <= initialProposal.proposedVdot))
+        ))
+
+    val wasAlreadyDeclined = initialProposal?.isAccepted == false
+
+    LaunchedEffect(runId) {
+        if (run != null && initialProposal != null && initialProposal.isAccepted == null && wasAlreadyAccepted) {
+            val healed = run.copy(adaptationProposal = initialProposal.copy(isAccepted = true))
+            storage.saveRun(healed)
+        }
+    }
+
+    var adaptationProposal by remember {
+        mutableStateOf(
+            if (wasAlreadyAccepted && initialProposal != null && initialProposal.isAccepted != true) {
+                initialProposal.copy(isAccepted = true)
+            } else initialProposal
+        )
+    }
+
+    var adaptationStatusText by remember {
+        mutableStateOf(
+            when {
+                wasAlreadyAccepted && initialProposal != null -> "✓ Plan adjusted to VDOT ${initialProposal.proposedVdot} (Already Accepted)"
+                wasAlreadyDeclined -> "Original plan retained (Declined)"
+                else -> null
+            }
+        )
+    }
 
     val mockWorkout = remember(run) {
         Workout(
@@ -71,6 +104,11 @@ fun PostRunScreen(
         topBar = {
             TopAppBar(
                 title = { Text("WORKOUT SUMMARY", fontWeight = FontWeight.Black, letterSpacing = 1.sp) },
+                navigationIcon = {
+                    IconButton(onClick = onReturnToDashboard) {
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back", tint = TextPrimary)
+                    }
+                },
                 colors = TopAppBarDefaults.topAppBarColors(containerColor = MaterialTheme.colorScheme.background)
             )
         },
@@ -218,13 +256,29 @@ fun PostRunScreen(
                             }
 
                             if (adaptationStatusText != null) {
-                                Spacer(modifier = Modifier.height(12.dp))
-                                Text(
-                                    text = adaptationStatusText!!,
-                                    fontSize = 14.sp,
-                                    fontWeight = FontWeight.Bold,
-                                    color = BrightCyan
-                                )
+                                Spacer(modifier = Modifier.height(14.dp))
+                                Row(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .clip(RoundedCornerShape(8.dp))
+                                        .background(if (adaptationProposal?.isAccepted == true) NeonGreen.copy(alpha = 0.15f) else DarkSurfaceElevated)
+                                        .padding(horizontal = 12.dp, vertical = 10.dp),
+                                    verticalAlignment = Alignment.CenterVertically
+                                ) {
+                                    Icon(
+                                        imageVector = if (adaptationProposal?.isAccepted == true) Icons.Default.Check else Icons.Default.Close,
+                                        contentDescription = null,
+                                        tint = if (adaptationProposal?.isAccepted == true) NeonGreen else TextMuted,
+                                        modifier = Modifier.size(18.dp)
+                                    )
+                                    Spacer(modifier = Modifier.width(8.dp))
+                                    Text(
+                                        text = adaptationStatusText!!,
+                                        fontSize = 13.sp,
+                                        fontWeight = FontWeight.Bold,
+                                        color = if (adaptationProposal?.isAccepted == true) NeonGreen else TextSecondary
+                                    )
+                                }
                             } else {
                                 Spacer(modifier = Modifier.height(16.dp))
                                 Row(
@@ -233,12 +287,19 @@ fun PostRunScreen(
                                 ) {
                                     Button(
                                         onClick = {
-                                            if (plan != null) {
-                                                val updated = AdaptiveCoach.applyProposalToPlan(plan!!, proposal)
+                                            val acceptedProposal = proposal.copy(isAccepted = true)
+                                            adaptationProposal = acceptedProposal
+                                            adaptationStatusText = "✓ Plan adjusted & new paces calibrated!"
+                                            val activePlan = plan
+                                            if (activePlan != null) {
+                                                val updated = AdaptiveCoach.applyProposalToPlan(activePlan, acceptedProposal)
                                                 storage.savePlan(updated)
                                                 plan = updated
                                                 storage.saveProfile(profile.copy(vdot = proposal.proposedVdot))
-                                                adaptationStatusText = "✓ Plan adjusted & new paces calibrated!"
+                                            }
+                                            if (run != null) {
+                                                val updatedRun = run.copy(adaptationProposal = acceptedProposal)
+                                                storage.saveRun(updatedRun)
                                             }
                                         },
                                         modifier = Modifier.weight(1f),
@@ -252,7 +313,13 @@ fun PostRunScreen(
 
                                     OutlinedButton(
                                         onClick = {
+                                            val declinedProposal = proposal.copy(isAccepted = false)
+                                            adaptationProposal = declinedProposal
                                             adaptationStatusText = "Original plan retained."
+                                            if (run != null) {
+                                                val updatedRun = run.copy(adaptationProposal = declinedProposal)
+                                                storage.saveRun(updatedRun)
+                                            }
                                         },
                                         modifier = Modifier.weight(1f),
                                         shape = RoundedCornerShape(10.dp)

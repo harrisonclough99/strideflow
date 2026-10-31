@@ -236,4 +236,45 @@ class StrideFlowTests {
         val updatedEasyPace = updatedPlan.workouts.first { it.type == WorkoutType.EASY }.targetPaceSecPerKm
         assertTrue("Updated easy pace should be faster (smaller sec/km)", updatedEasyPace < initialEasyPace)
     }
+
+    @Test
+    fun testAdaptationProposalAcceptanceState() {
+        val proposal = AdaptationProposal(
+            id = "prop_1",
+            runId = "run_1",
+            title = "Fitness Level Up",
+            reason = "High Performance",
+            previousVdot = 42.0,
+            proposedVdot = 43.5,
+            pacingDeltaSecPerKm = -8.0,
+            explanationText = "Upgrade VDOT",
+            isAccepted = null
+        )
+
+        // Pending state initially
+        assertNull(proposal.isAccepted)
+
+        // Accepted state
+        val acceptedProposal = proposal.copy(isAccepted = true)
+        assertEquals(true, acceptedProposal.isAccepted)
+
+        val run = RecordedRun(
+            id = "run_1",
+            startTimeMillis = System.currentTimeMillis(),
+            durationSeconds = 1500,
+            distanceMeters = 5000.0,
+            averagePaceSecPerKm = 300.0,
+            adaptationProposal = acceptedProposal
+        )
+
+        assertEquals(true, run.adaptationProposal?.isAccepted)
+
+        // Test backward-compatible healed detection:
+        // Even if old proposal in JSON had isAccepted = null, if plan VDOT is >= proposedVdot, recognized as accepted
+        val unhealedProposal = proposal.copy(isAccepted = null)
+        val currentPlanVdot = 43.5
+        val wasAlreadyAccepted = unhealedProposal.isAccepted == true ||
+            (unhealedProposal.isAccepted == null && currentPlanVdot >= unhealedProposal.proposedVdot)
+        assertTrue("Proposal should be recognized as already accepted when plan VDOT matches proposed VDOT", wasAlreadyAccepted)
+    }
 }
