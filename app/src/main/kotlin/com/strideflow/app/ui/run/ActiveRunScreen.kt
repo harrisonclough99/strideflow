@@ -336,7 +336,7 @@ fun ActiveRunScreen(
                         color = TextMuted
                     )
                     Text(
-                        text = VdotCalculator.formatPace(currentPace),
+                        text = VdotCalculator.formatPace(currentPace, roundToNearest5Seconds = profile.isPaceRounding5sEnabled),
                         fontSize = 72.sp,
                         fontWeight = FontWeight.Black,
                         fontFamily = FontFamily.Monospace,

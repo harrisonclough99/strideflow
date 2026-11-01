@@ -404,6 +404,29 @@ fun SettingsScreen(
                             horizontalArrangement = Arrangement.SpaceBetween,
                             verticalAlignment = Alignment.CenterVertically
                         ) {
+                            Column(modifier = Modifier.weight(1f)) {
+                                Text("Pace Stability (Garmin 5s Rounding)", fontWeight = FontWeight.Bold, fontSize = 14.sp, color = TextPrimary)
+                                Text("Rounds live pace to 5s (5:00, 5:05) like Garmin watches for rock-steady stability without numerical flutter", fontSize = 12.sp, color = TextSecondary)
+                            }
+                            Switch(
+                                checked = profile.isPaceRounding5sEnabled,
+                                onCheckedChange = { checked ->
+                                    profile = profile.copy(isPaceRounding5sEnabled = checked)
+                                    storage.saveProfile(profile)
+                                },
+                                colors = SwitchDefaults.colors(checkedThumbColor = NeonGreen)
+                            )
+                        }
+
+                        Spacer(modifier = Modifier.height(14.dp))
+                        HorizontalDivider(color = DarkOutline)
+                        Spacer(modifier = Modifier.height(14.dp))
+
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
                             Column {
                                 Text("Start Countdown", fontWeight = FontWeight.Bold, fontSize = 14.sp, color = TextPrimary)
                                 Text("Countdown buffer before GPS starts", fontSize = 12.sp, color = TextSecondary)

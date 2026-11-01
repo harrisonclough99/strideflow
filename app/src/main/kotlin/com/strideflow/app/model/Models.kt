@@ -90,6 +90,7 @@ data class UserProfile(
     val isAutoPauseEnabled: Boolean = true,
     val autoPauseThresholdSeconds: Int = 10,
     val countdownDurationSeconds: Int = 3,
+    val isPaceRounding5sEnabled: Boolean = true,
     val isNutritionNotificationsEnabled: Boolean = true,
     val isRunReminderNotificationsEnabled: Boolean = true,
     val scheduledRunHour: Int = 7,

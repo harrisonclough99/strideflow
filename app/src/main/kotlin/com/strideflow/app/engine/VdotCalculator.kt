@@ -103,10 +103,16 @@ object VdotCalculator {
 
     /**
      * Format pace (seconds per km or mile) into string format "M:SS"
+     * @param paceSec Pace in seconds per kilometer
+     * @param roundToNearest5Seconds When true, rounds pace to the nearest 5s (Garmin running standard)
      */
-    fun formatPace(paceSec: Double): String {
+    fun formatPace(paceSec: Double, roundToNearest5Seconds: Boolean = false): String {
         if (paceSec.isNaN() || paceSec.isInfinite() || paceSec <= 0 || paceSec > 1200.0) return "--:--"
-        val totalSec = paceSec.roundToInt()
+        val totalSec = if (roundToNearest5Seconds) {
+            ((paceSec / 5.0).roundToInt() * 5)
+        } else {
+            paceSec.roundToInt()
+        }
         val minutes = totalSec / 60
         val seconds = totalSec % 60
         return "%d:%02d".format(minutes, seconds)
